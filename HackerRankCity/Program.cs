@@ -14,7 +14,7 @@ using System;
 
 class Result
 {
-    public const long modConst = 1000000007;
+    public const long modConst = 1000000007; // max long 9223372036854775807
 
     /*
      * Complete the 'hackerrankCity' function below.
@@ -22,75 +22,43 @@ class Result
      * The function is expected to return an INTEGER.
      * The function accepts INTEGER_ARRAY A as parameter.
      */
-
     public static long hackerrankCity(List<int> A)
     {
-        CondensedTree city = new CondensedTree(0, 0, 1);
-        long c2c = 0;
-        foreach (int d in A)
+        City currCity = new City
         {
+            N = 1
+        };
 
-            CondensedTree quadrant = CombineTree(city, new CondensedTree(d, d, 2), true, d);
-            CondensedTree half = CombineTree(quadrant, quadrant, false);
-            CondensedTree extendedHalf = CombineTree(half, new CondensedTree(d, d, 2), true, d);
+        foreach (long L in A)
+        {
+            City nextCity = new City();
+            nextCity.N = (4 * currCity.N + 2) % modConst;
+            nextCity.D = (2 * currCity.D + 3 * L) % modConst;
+            nextCity.C = (4 * currCity.C + 3 * L + 2 * currCity.D + 8 * currCity.N * L + 3 * currCity.N * currCity.D) % modConst;
+            nextCity.T = (4 * currCity.T + L + 12 * currCity.N * L + 8 * currCity.C + 12 * (currCity.N * currCity.C % modConst) + 16 * (currCity.N * currCity.N % modConst) * L) % modConst;
 
-            long cornerDescendantDist =
-                (city.descendantDist +
-                c2c + d +
-                c2c + 2 * d +
-                ((c2c + 2 * d) * city.numNodes) % modConst + city.descendantDist +
-                (((c2c + 3 * d) * city.numNodes) % modConst + city.descendantDist) * 2) % modConst;
-
-            //Console.WriteLine($"corner: {cornerDescendantDist}");
-
-
-            city = CombineTree(half, extendedHalf, false);
-            city.descendantDist = cornerDescendantDist;
-            c2c = (c2c * 2 + 3 * d) % modConst;
-            //Console.WriteLine($"total dist = {city.totalDist}");
+            currCity = nextCity;
         }
 
-
-        return city.totalDist;
-
+        return currCity.T;
     }
 
-    public static CondensedTree CombineTree(CondensedTree t1, CondensedTree t2, bool extend, long d = 0)
+    public struct City
     {
-        long totalDist = (t1.descendantDist * t2.numNodes + t2.descendantDist * t1.numNodes + (t1.totalDist - t1.descendantDist) + (t2.totalDist - t2.descendantDist)) % modConst;
-        long descendantDist = (extend ? (t1.descendantDist + t1.numNodes * d) : (t1.descendantDist + t2.descendantDist)) % modConst;
-        long numNodes = (t1.numNodes + t2.numNodes - 1) % modConst;
-
-        return new CondensedTree(totalDist, descendantDist, numNodes);
+        public long N;
+        public long D;
+        public long C;
+        public long T;
     }
 }
-
-struct CondensedTree
-{
-    public long totalDist;
-    public long descendantDist;
-    public long numNodes;
-
-    public CondensedTree(long a, long b, long c)
-    {
-        totalDist = a;
-        descendantDist = b;
-        numNodes = c;
-    }
-
-}
-
-
 
 
 class Solution
 {
     public static void Main(string[] args)
     {
-        //int ACount = Convert.ToInt32(Console.ReadLine().Trim());
-        List<int> A = new List<int> { 1, 1 };
-
-        //List<int> A = Console.ReadLine().TrimEnd().Split(' ').ToList().Select(ATemp => Convert.ToInt32(ATemp)).ToList();
+        string[] rawInput = File.ReadLines("in.txt").ToArray();
+        List<int> A = rawInput[1].Split(' ').Select(x => int.Parse(x)).ToList();
 
         long result = Result.hackerrankCity(A);
 
